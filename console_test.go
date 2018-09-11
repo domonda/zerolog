@@ -6,7 +6,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/rs/zerolog"
+	"github.com/domonda/zerolog"
 )
 
 func ExampleConsoleWriter_Write() {
