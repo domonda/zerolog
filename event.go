@@ -26,12 +26,13 @@ var ErrorMarshalFunc = func(err error) interface{} {
 // Event represents a log event. It is instanced by one of the level method of
 // Logger and finalized by the Msg or Msgf method.
 type Event struct {
-	buf   []byte
-	w     LevelWriter
-	level Level
-	done  func(msg string)
-	ch    []Hook // hooks from context
-	h     []Hook
+	buf    []byte
+	w      LevelWriter
+	level  Level
+	done   func(msg string)
+	errors []error // save errors for having the real error in the hook
+	ch     []Hook  // hooks from context
+	h      []Hook
 }
 
 // LogObjectMarshaler provides a strongly-typed and encoding-agnostic interface
@@ -81,6 +82,12 @@ func (e *Event) Enabled() bool {
 func (e *Event) Discard() *Event {
 	e.level = Disabled
 	return nil
+}
+
+// Errors returns the error if any error was set
+// Otherwise it will return nil.
+func (e *Event) Errors() []error {
+	return e.errors
 }
 
 // Msg sends the *Event with msg added as the message field if not empty.
@@ -256,10 +263,19 @@ func (e *Event) RawJSON(key string, b []byte) *Event {
 	return e
 }
 
+// addError adds an error to the internal event structure
+func (e *Event) addError(err error) {
+	e.errors = append(e.errors, err)
+}
+
 // AnErr adds the field key with serialized err to the *Event context.
 // If err is nil, no field is added.
 func (e *Event) AnErr(key string, err error) *Event {
 	marshaled := ErrorMarshalFunc(err)
+
+	// add error to internal structure
+	e.addError(err)
+
 	switch m := marshaled.(type) {
 	case nil:
 		return e
@@ -279,6 +295,10 @@ func (e *Event) AnErr(key string, err error) *Event {
 func (e *Event) Errs(key string, errs []error) *Event {
 	if e == nil {
 		return e
+	}
+	// add all errors to internal structure
+	for _, err := range errs {
+		e.addError(err)
 	}
 
 	arr := Arr()
