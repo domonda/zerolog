@@ -7,9 +7,9 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/domonda/xid"
 	"github.com/domonda/zerolog"
 	"github.com/domonda/zerolog/log"
+	"github.com/rs/xid"
 	"github.com/zenazn/goji/web/mutil"
 )
 
