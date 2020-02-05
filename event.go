@@ -271,6 +271,10 @@ func (e *Event) addError(err error) {
 // AnErr adds the field key with serialized err to the *Event context.
 // If err is nil, no field is added.
 func (e *Event) AnErr(key string, err error) *Event {
+	if e == nil {
+		return e
+	}
+
 	marshaled := ErrorMarshalFunc(err)
 
 	// add error to internal structure
